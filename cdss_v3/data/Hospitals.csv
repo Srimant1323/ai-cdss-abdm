@@ -1,0 +1,9 @@
+hospital_id,name,city,state,type,lat,lon,beds_total,beds_icu,beds_emergency,beds_general,specialities,abdm_hfr_id,contact,pmjay_empanelled
+H001,AIIMS Delhi,Delhi,Delhi,Government Tertiary,28.5672,77.21,1956,120,80,1756,"Cardiology,Neurology,Oncology,Nephrology,Orthopedics",IN-DL-H-001234,011-26588500,True
+H002,Safdarjung Hospital,Delhi,Delhi,Government Tertiary,28.5679,77.206,1531,80,60,1391,"General Medicine,Surgery,Gynecology,Pediatrics",IN-DL-H-001235,011-26165060,True
+H003,Apollo Hospital Delhi,Delhi,Delhi,Private Tertiary,28.6139,77.209,700,100,50,550,"Cardiology,Neurology,Oncology,Orthopedics,Transplant",IN-DL-H-005678,011-71791090,False
+H004,Fortis Memorial Gurugram,Gurugram,Haryana,Private Tertiary,28.4595,77.0266,262,45,30,187,"Cardiology,Neurosurgery,Organ Transplant,Robotics Surgery",IN-HR-H-002345,0124-4921021,False
+H005,Medanta The Medicity,Gurugram,Haryana,Private Tertiary,28.4472,77.0442,1600,200,100,1300,"Cardiology,Neurosciences,Oncology,Orthopedics,Nephrology",IN-HR-H-002346,0124-4141414,True
+H006,Max Super Speciality Saket,Delhi,Delhi,Private Tertiary,28.5245,77.2066,500,75,40,385,"Cardiology,Oncology,Neurology,Orthopedics,Renal Sciences",IN-DL-H-005679,011-26515050,True
+H007,RML Hospital New Delhi,Delhi,Delhi,Government Secondary,28.6258,77.2195,1490,60,70,1360,"General Medicine,Surgery,ENT,Ophthalmology,Dermatology",IN-DL-H-001236,011-23365525,True
+H008,City Care Hospital Noida,Noida,Uttar Pradesh,Private Secondary,28.5355,77.391,150,20,15,115,"General Medicine,Orthopedics,Gynecology,Pediatrics",IN-UP-H-007890,0120-4567890,False

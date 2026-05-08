@@ -1,0 +1,25 @@
+hospital_id,hospital_name,city,ward_type,beds_total,beds_occupied,beds_available,occupancy_pct,last_updated
+H001,AIIMS Delhi,Delhi,ICU,120,94,26,78.3,2025-05-07T09:00:00
+H001,AIIMS Delhi,Delhi,Emergency,80,48,32,60.0,2025-05-07T09:00:00
+H001,AIIMS Delhi,Delhi,General,1756,1022,734,58.2,2025-05-07T09:00:00
+H002,Safdarjung Hospital,Delhi,ICU,80,58,22,72.5,2025-05-07T09:00:00
+H002,Safdarjung Hospital,Delhi,Emergency,60,42,18,70.0,2025-05-07T09:00:00
+H002,Safdarjung Hospital,Delhi,General,1391,814,577,58.5,2025-05-07T09:00:00
+H003,Apollo Hospital Delhi,Delhi,ICU,100,77,23,77.0,2025-05-07T09:00:00
+H003,Apollo Hospital Delhi,Delhi,Emergency,50,34,16,68.0,2025-05-07T09:00:00
+H003,Apollo Hospital Delhi,Delhi,General,550,340,210,61.8,2025-05-07T09:00:00
+H004,Fortis Memorial Gurugram,Gurugram,ICU,45,33,12,73.3,2025-05-07T09:00:00
+H004,Fortis Memorial Gurugram,Gurugram,Emergency,30,18,12,60.0,2025-05-07T09:00:00
+H004,Fortis Memorial Gurugram,Gurugram,General,187,103,84,55.1,2025-05-07T09:00:00
+H005,Medanta The Medicity,Gurugram,ICU,200,165,35,82.5,2025-05-07T09:00:00
+H005,Medanta The Medicity,Gurugram,Emergency,100,67,33,67.0,2025-05-07T09:00:00
+H005,Medanta The Medicity,Gurugram,General,1300,751,549,57.8,2025-05-07T09:00:00
+H006,Max Super Speciality Saket,Delhi,ICU,75,57,18,76.0,2025-05-07T09:00:00
+H006,Max Super Speciality Saket,Delhi,Emergency,40,27,13,67.5,2025-05-07T09:00:00
+H006,Max Super Speciality Saket,Delhi,General,385,236,149,61.3,2025-05-07T09:00:00
+H007,RML Hospital New Delhi,Delhi,ICU,60,47,13,78.3,2025-05-07T09:00:00
+H007,RML Hospital New Delhi,Delhi,Emergency,70,47,23,67.1,2025-05-07T09:00:00
+H007,RML Hospital New Delhi,Delhi,General,1360,816,544,60.0,2025-05-07T09:00:00
+H008,City Care Hospital Noida,Noida,ICU,20,15,5,75.0,2025-05-07T09:00:00
+H008,City Care Hospital Noida,Noida,Emergency,15,9,6,60.0,2025-05-07T09:00:00
+H008,City Care Hospital Noida,Noida,General,115,71,44,61.7,2025-05-07T09:00:00
