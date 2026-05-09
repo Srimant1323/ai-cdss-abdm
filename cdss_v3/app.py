@@ -1014,3 +1014,18 @@ Per **WHO Guidance on Ethics and Governance of AI for Health (2021)** and
 10. Breiman L. Random Forests. *Machine Learning.* 2001;45(1):5–32
 11. Lundberg SM, Lee SI. A unified approach to interpreting model predictions. *NeurIPS.* 2017
     """)
+   st.markdown("""
+---
+## Developer
+
+| | |
+|---|---|
+| **Developed by** | Srimant Bhardwaj |
+| **Institution** | [Delhi Technological University] |
+| **Year** | 2026 |
+| **Contact** | [bhardwajsrimant7@gmail.com] |
+| **GitHub** | https://github.com/Srimant1323 |
+| **Copyright** | © 2026 Srimant Bhardwaj. All rights reserved. |
+
+*This project is an original research prototype. Concept, design, vision, and deployment by the author. Code developed with AI-assisted tools (Claude, Anthropic). Unauthorised reproduction or commercial use without attribution is not permitted.*
+    """)
