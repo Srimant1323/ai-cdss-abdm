@@ -559,7 +559,7 @@ All hospital and doctor information is referenced from ABDM's Health Facility Re
             icu_pct = float(icu_row["occupancy_pct"].values[0]) if len(icu_row) else 0
             icu_avail = int(icu_row["beds_available"].values[0]) if len(icu_row) else 0
             bc,bi = bed_color_class(icu_pct)
-            with st.expander(f"{bi} **{h['name']}** · {h['city']} · {h['type']} — ICU {icu_pct:.0f}% full"):
+            with st.expander(f"{bi} **{h.get('hospital_name', h.get('name','Hospital'))}** · {h['city']} · {h['type']} — ICU {icu_pct:.0f}% full"):
                 hc1,hc2,hc3,hc4 = st.columns(4)
                 hc1.metric("Total Beds", f"{h['beds_total']:,}")
                 hc2.metric("ICU Available", f"{icu_avail}", delta=f"{icu_pct:.0f}% full")
@@ -686,7 +686,10 @@ National Medical Commission (NMC) registry IDs.
     perf["recovery_rate"] = (perf["recovered"]/perf["cases_handled"]*100).round(1)
     perf["complexity_score"] = perf["avg_severity"].round(2)
     perf = perf.merge(doc_df,on="doctor_id",how="left")
-    perf = perf.merge(hosp_df[["hospital_id","name","city","type","pmjay_empanelled"]],on="hospital_id",how="left")
+    hosp_merge_cols = [c for c in ["hospital_id","hospital_name","name","city","type","pmjay_empanelled"] if c in hosp_df.columns]
+    perf = perf.merge(hosp_df[hosp_merge_cols], on="hospital_id", how="left")
+    if "name" in perf.columns and "hospital_name" not in perf.columns:
+        perf = perf.rename(columns={"name":"hospital_name"})
     perf = perf.sort_values("recovery_rate",ascending=False).reset_index(drop=True)
     perf["rank"] = range(1,len(perf)+1)
 
