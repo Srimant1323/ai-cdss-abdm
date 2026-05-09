@@ -51,99 +51,253 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # ─────────────────────────────────────────────────────────────────────────────
-# START BED SIMULATOR IN BACKGROUND
+# BED SIMULATOR — only runs locally, disabled on Streamlit Cloud
 # ─────────────────────────────────────────────────────────────────────────────
-@st.cache_resource
-def start_simulator():
-    try:
-        from simulator.bed_simulator import BedOccupancySimulator
-        sim = BedOccupancySimulator(use_mqtt=False)
-        sim.start_background(interval=30)
-        return sim
-    except Exception:
-        return None
+IS_CLOUD = os.path.exists("/mount/src")
 
-# Only run simulator if running locally (not on Streamlit Cloud)
-import os
-if not os.environ.get("STREAMLIT_SHARING_MODE") and not os.path.exists("/mount/src"):
+if not IS_CLOUD:
+    @st.cache_resource
+    def start_simulator():
+        try:
+            from simulator.bed_simulator import BedOccupancySimulator
+            sim = BedOccupancySimulator(use_mqtt=False)
+            sim.start_background(interval=30)
+            return sim
+        except Exception:
+            return None
     try:
         _sim = start_simulator()
     except Exception:
         pass
 
 # ─────────────────────────────────────────────────────────────────────────────
-# DATA LOADING
+# DATA — works from CSV files if present, otherwise uses embedded data
 # ─────────────────────────────────────────────────────────────────────────────
-@st.cache_data(ttl=25)
-def load_beds():
-    import os
-    path = "data/BedOccupancy.csv"
-    if not os.path.exists(path):
-        # Generate default bed data if file missing
-        import numpy as np
-        hospitals = pd.read_csv("data/Hospitals.csv")
-        hospitals.columns = hospitals.columns.str.strip()
-        if "name" in hospitals.columns:
-            hospitals = hospitals.rename(columns={"name":"hospital_name"})
-        rows = []
-        for _, h in hospitals.iterrows():
-            for ward, key, rate in [("ICU","beds_icu",0.75),("Emergency","beds_emergency",0.65),("General","beds_general",0.60)]:
-                total = int(h.get(key, 20))
-                occ   = int(total * rate)
-                rows.append({"hospital_id":h["hospital_id"],"hospital_name":h["hospital_name"],
-                             "city":h["city"],"ward_type":ward,"beds_total":total,
-                             "beds_occupied":occ,"beds_available":total-occ,
-                             "occupancy_pct":round(occ/max(total,1)*100,1),
-                             "last_updated":"2025-05-07T09:00:00"})
-        return pd.DataFrame(rows)
-    return pd.read_csv(path)
+def _find_data_path(filename):
+    """Find data file — checks multiple locations for Streamlit Cloud compatibility."""
+    candidates = [
+        os.path.join("data", filename),
+        os.path.join("cdss_v3", "data", filename),
+        os.path.join(os.path.dirname(__file__), "data", filename),
+        os.path.join("/mount/src/ai-cdss-abdm/cdss_v3/data", filename),
+    ]
+    for p in candidates:
+        if os.path.exists(p):
+            return p
+    return None
 
 @st.cache_data
 def load_hospitals():
-    h = pd.read_csv("data/Hospitals.csv")
-    h.columns = h.columns.str.strip()
-    if "name" in h.columns and "hospital_name" not in h.columns:
-        h = h.rename(columns={"name": "hospital_name"})
-    return h
+    path = _find_data_path("Hospitals.csv")
+    if path:
+        h = pd.read_csv(path)
+        h.columns = h.columns.str.strip()
+        if "name" in h.columns and "hospital_name" not in h.columns:
+            h = h.rename(columns={"name": "hospital_name"})
+        return h
+    # Embedded fallback
+    return pd.DataFrame({
+        "hospital_id":    ["H001","H002","H003","H004","H005","H006","H007","H008"],
+        "hospital_name":  ["AIIMS Delhi","Safdarjung Hospital","Apollo Hospital Delhi",
+                           "Fortis Memorial Gurugram","Medanta The Medicity",
+                           "Max Super Speciality Saket","RML Hospital New Delhi",
+                           "City Care Hospital Noida"],
+        "city":           ["Delhi","Delhi","Delhi","Gurugram","Gurugram","Delhi","Delhi","Noida"],
+        "state":          ["Delhi","Delhi","Delhi","Haryana","Haryana","Delhi","Delhi","Uttar Pradesh"],
+        "type":           ["Government Tertiary","Government Tertiary","Private Tertiary",
+                           "Private Tertiary","Private Tertiary","Private Tertiary",
+                           "Government Secondary","Private Secondary"],
+        "beds_total":     [1956,1531,700,262,1600,500,1490,150],
+        "beds_icu":       [120,80,100,45,200,75,60,20],
+        "beds_emergency": [80,60,50,30,100,40,70,15],
+        "beds_general":   [1756,1391,550,187,1300,385,1360,115],
+        "specialities":   ["Cardiology,Neurology,Oncology,Nephrology,Orthopedics",
+                           "General Medicine,Surgery,Gynecology,Pediatrics",
+                           "Cardiology,Neurology,Oncology,Orthopedics,Transplant",
+                           "Cardiology,Neurosurgery,Organ Transplant,Robotics Surgery",
+                           "Cardiology,Neurosciences,Oncology,Orthopedics,Nephrology",
+                           "Cardiology,Oncology,Neurology,Orthopedics,Renal Sciences",
+                           "General Medicine,Surgery,ENT,Ophthalmology,Dermatology",
+                           "General Medicine,Orthopedics,Gynecology,Pediatrics"],
+        "abdm_hfr_id":    ["IN-DL-H-001234","IN-DL-H-001235","IN-DL-H-005678",
+                           "IN-HR-H-002345","IN-HR-H-002346","IN-DL-H-005679",
+                           "IN-DL-H-001236","IN-UP-H-007890"],
+        "contact":        ["011-26588500","011-26165060","011-71791090","0124-4921021",
+                           "0124-4141414","011-26515050","011-23365525","0120-4567890"],
+        "pmjay_empanelled":[True,True,False,False,True,True,True,False],
+        "lat":            [28.5672,28.5679,28.6139,28.4595,28.4472,28.5245,28.6258,28.5355],
+        "lon":            [77.2100,77.2060,77.2090,77.0266,77.0442,77.2066,77.2195,77.3910],
+    })
 
 @st.cache_data
-def load_doctors():   return pd.read_csv("data/Doctors.csv")
+def load_doctors():
+    path = _find_data_path("Doctors.csv")
+    if path:
+        d = pd.read_csv(path)
+        d.columns = d.columns.str.strip()
+        return d
+    return pd.DataFrame({
+        "doctor_id":        ["D001","D002","D003","D004","D005","D006","D007","D008",
+                             "D009","D010","D011","D012","D013","D014","D015"],
+        "name":             ["Dr. Rajesh Sharma","Dr. Priya Mehta","Dr. Suresh Iyer",
+                             "Dr. Aisha Khan","Dr. Vikram Singh","Dr. Kavitha Patel",
+                             "Dr. Anand Reddy","Dr. Meena Gupta","Dr. Rajan Nair",
+                             "Dr. Deepa Chatterjee","Dr. Rohit Verma","Dr. Sanjay Rao",
+                             "Dr. Fatima Bose","Dr. Naveen Joshi","Dr. Pooja Mishra"],
+        "specialization":   ["Cardiology","Neurology","Nephrology","General Medicine",
+                             "Cardiology","Pulmonology","Endocrinology","Gastroenterology",
+                             "Oncology","Neurology","Nephrology","Cardiology",
+                             "General Medicine","Pulmonology","Endocrinology"],
+        "qualification":    ["MBBS,MD,DM Cardiology","MBBS,MD,DM Neurology",
+                             "MBBS,MD,DM Nephrology","MBBS,MD Internal Medicine",
+                             "MBBS,MD,DM Cardiology,FRCP","MBBS,MD Pulmonology",
+                             "MBBS,MD,DM Endocrinology","MBBS,MD,DM Gastroenterology",
+                             "MBBS,MD,DM Oncology","MBBS,MD,DNB Neurology",
+                             "MBBS,MD,DM Nephrology","MBBS,MD,DM Cardiology",
+                             "MBBS,MD Internal Medicine","MBBS,MD Pulmonology,FCCP",
+                             "MBBS,MD,DM Endocrinology"],
+        "experience_years": [18,14,20,10,22,12,15,13,17,11,9,25,8,16,7],
+        "hospital_id":      ["H001","H001","H002","H002","H003","H004","H004","H005",
+                             "H005","H006","H006","H005","H007","H007","H008"],
+        "abdm_hpr_id":      ["rajesh.sharma@hpr.abdm","priya.mehta@hpr.abdm",
+                             "suresh.iyer@hpr.abdm","aisha.khan@hpr.abdm",
+                             "vikram.singh@hpr.abdm","kavitha.patel@hpr.abdm",
+                             "anand.reddy@hpr.abdm","meena.gupta@hpr.abdm",
+                             "rajan.nair@hpr.abdm","deepa.chatterjee@hpr.abdm",
+                             "rohit.verma@hpr.abdm","sanjay.rao@hpr.abdm",
+                             "fatima.bose@hpr.abdm","naveen.joshi@hpr.abdm",
+                             "pooja.mishra@hpr.abdm"],
+        "nmr_id":           ["NMR-DL-2006-001234","NMR-DL-2010-002345","NMR-DL-2004-003456",
+                             "NMR-DL-2014-004567","NMR-DL-2002-005678","NMR-HR-2012-006789",
+                             "NMR-HR-2009-007890","NMR-HR-2011-008901","NMR-HR-2007-009012",
+                             "NMR-DL-2013-010123","NMR-DL-2015-011234","NMR-HR-1999-012345",
+                             "NMR-DL-2016-013456","NMR-DL-2008-014567","NMR-UP-2017-015678"],
+        "rating":           [4.8,4.7,4.9,4.5,4.9,4.6,4.7,4.6,4.8,4.7,4.5,5.0,4.4,4.8,4.3],
+        "total_cases":      [892,634,1102,445,1567,523,678,489,934,412,321,2134,267,745,198],
+    })
 
 @st.cache_data
-def load_patients():  return pd.read_csv("data/Patients.csv")
+def load_patients():
+    path = _find_data_path("Patients.csv")
+    if path:
+        p = pd.read_csv(path)
+        p.columns = p.columns.str.strip()
+        return p
+    np.random.seed(42)
+    N = 100
+    ages = np.random.randint(18, 80, N)
+    return pd.DataFrame({
+        "patient_id":  [f"P{i+1:04d}" for i in range(N)],
+        "age":         ages,
+        "gender":      np.random.choice(["Male","Female"], N),
+        "state":       np.random.choice(["Delhi","Haryana","Uttar Pradesh"], N),
+        "blood_group": np.random.choice(["A+","B+","O+","AB+"], N),
+        "abha_id":     [f"91-{np.random.randint(1000,9999)}-{np.random.randint(1000,9999)}-{np.random.randint(1000,9999)}" for _ in range(N)],
+    })
 
 @st.cache_data
 def load_cases():
-    import pandas as pd
-    cases     = pd.read_csv("data/Cases.csv")
-    doctors   = pd.read_csv("data/Doctors.csv")
-    hospitals = pd.read_csv("data/Hospitals.csv")
-    patients  = pd.read_csv("data/Patients.csv")
+    cases_path    = _find_data_path("Cases.csv")
+    doctors_path  = _find_data_path("Doctors.csv")
+    hospitals_path= _find_data_path("Hospitals.csv")
+    patients_path = _find_data_path("Patients.csv")
 
-    cases.columns     = cases.columns.str.strip()
-    doctors.columns   = doctors.columns.str.strip()
-    hospitals.columns = hospitals.columns.str.strip()
-    patients.columns  = patients.columns.str.strip()
+    if all([cases_path, doctors_path, hospitals_path, patients_path]):
+        cases     = pd.read_csv(cases_path)
+        doctors   = pd.read_csv(doctors_path)
+        hospitals = pd.read_csv(hospitals_path)
+        patients  = pd.read_csv(patients_path)
+        cases.columns     = cases.columns.str.strip()
+        doctors.columns   = doctors.columns.str.strip()
+        hospitals.columns = hospitals.columns.str.strip()
+        patients.columns  = patients.columns.str.strip()
+        if "name" in hospitals.columns and "hospital_name" not in hospitals.columns:
+            hospitals = hospitals.rename(columns={"name": "hospital_name"})
+        # Remove hospital_id from doctors to avoid merge conflict
+        doc_cols = [c for c in doctors.columns if c != "hospital_id"]
+        doctors  = doctors[doc_cols]
+        hosp_keep = [c for c in ["hospital_id","hospital_name","city","state","type",
+                     "pmjay_empanelled","abdm_hfr_id","contact","specialities",
+                     "beds_total","beds_icu","beds_emergency","beds_general","lat","lon"]
+                     if c in hospitals.columns]
+        hospitals = hospitals[hosp_keep]
+        df = (cases
+              .merge(patients,  on="patient_id",  how="left")
+              .merge(doctors,   on="doctor_id",   how="left")
+              .merge(hospitals, on="hospital_id", how="left"))
+        return df
 
-    if "name" in hospitals.columns:
-        hospitals = hospitals.rename(columns={"name": "hospital_name"})
-
-    # doctors has hospital_id too — drop it before merge to avoid conflict
+    # Embedded fallback — generate synthetic cases
+    np.random.seed(42)
+    hospitals = load_hospitals()
+    doctors   = load_doctors()
+    patients  = load_patients()
+    DISEASES  = ["Myocardial Infarction","Stroke","Dengue","Chronic Kidney Disease",
+                 "Hypertension","Diabetes","Pneumonia","Asthma","Liver Cirrhosis",
+                 "Lung Cancer","Sepsis","Tuberculosis","Typhoid","Appendicitis","Brain Tumour"]
+    DISEASE_DOC = {
+        "Myocardial Infarction":["D001","D005","D012"],"Stroke":["D002","D010"],
+        "Dengue":["D004","D013"],"Chronic Kidney Disease":["D003","D011"],
+        "Hypertension":["D001","D004","D005"],"Diabetes":["D007","D015"],
+        "Pneumonia":["D006","D014"],"Asthma":["D006","D014"],
+        "Liver Cirrhosis":["D008"],"Lung Cancer":["D009"],"Sepsis":["D003","D004"],
+        "Tuberculosis":["D006","D014"],"Typhoid":["D004","D013"],
+        "Appendicitis":["D004","D013"],"Brain Tumour":["D002","D009"],
+    }
+    DOC_HOSP = dict(zip(doctors["doctor_id"], doctors["hospital_id"]))
+    DW = [12,7,6,8,9,10,7,5,5,4,6,6,6,6,3]; DW=[w/sum(DW) for w in DW]
+    OP_P = {"High":[0.20,0.22,0.28,0.30],"Medium":[0.38,0.32,0.22,0.08],"Low":[0.60,0.28,0.10,0.02]}
+    OUTCOMES = ["Recovered","Improving","Stable","Critical"]
+    rows = []
+    for i, pat in patients.iterrows():
+        dis = np.random.choice(DISEASES, p=DW)
+        sev = np.random.choice(["High","Medium","Low"], p=[0.35,0.40,0.25])
+        out = np.random.choice(OUTCOMES, p=OP_P[sev])
+        doc = np.random.choice(DISEASE_DOC[dis])
+        rows.append({"case_id":f"C{i+1:04d}","patient_id":pat["patient_id"],
+                     "doctor_id":doc,"hospital_id":DOC_HOSP[doc],
+                     "disease_name":dis,"severity":sev,"outcome":out})
+    cases = pd.DataFrame(rows)
     doc_cols = [c for c in doctors.columns if c != "hospital_id"]
-    doctors  = doctors[doc_cols]
-
-    # hospitals — keep only needed columns
-    hosp_keep = ["hospital_id","hospital_name","city","state","type",
-                 "pmjay_empanelled","abdm_hfr_id","contact","specialities",
-                 "beds_total","beds_icu","beds_emergency","beds_general","lat","lon"]
-    hosp_keep = [c for c in hosp_keep if c in hospitals.columns]
-    hospitals = hospitals[hosp_keep]
-
+    hosp_keep = [c for c in ["hospital_id","hospital_name","city","state","type",
+                 "pmjay_empanelled","abdm_hfr_id","contact","specialities"] if c in hospitals.columns]
     df = (cases
-          .merge(patients,  on="patient_id",  how="left")
-          .merge(doctors,   on="doctor_id",   how="left")
-          .merge(hospitals, on="hospital_id", how="left"))
+          .merge(patients,          on="patient_id",  how="left")
+          .merge(doctors[doc_cols], on="doctor_id",   how="left")
+          .merge(hospitals[hosp_keep], on="hospital_id", how="left"))
     return df
+
+@st.cache_data(ttl=30)
+def load_beds():
+    path = _find_data_path("BedOccupancy.csv")
+    if path and not IS_CLOUD:
+        try:
+            return pd.read_csv(path)
+        except Exception:
+            pass
+    # Always use embedded data on cloud — generated fresh each TTL cycle
+    hospitals = load_hospitals()
+    np.random.seed(int(datetime.now().timestamp()) % 1000)
+    rows = []
+    for _, h in hospitals.iterrows():
+        for ward, key, base_rate in [("ICU","beds_icu",0.75),
+                                      ("Emergency","beds_emergency",0.65),
+                                      ("General","beds_general",0.60)]:
+            total = int(h.get(key, 20))
+            rate  = base_rate + np.random.uniform(-0.15, 0.15)
+            occ   = int(total * max(0, min(1, rate)))
+            rows.append({
+                "hospital_id":   h["hospital_id"],
+                "hospital_name": h["hospital_name"],
+                "city":          h["city"],
+                "ward_type":     ward,
+                "beds_total":    total,
+                "beds_occupied": occ,
+                "beds_available":total - occ,
+                "occupancy_pct": round(occ/max(total,1)*100, 1),
+                "last_updated":  datetime.now().strftime("%Y-%m-%dT%H:%M:%S"),
+            })
+    return pd.DataFrame(rows)
 
 # ─────────────────────────────────────────────────────────────────────────────
 # ML PIPELINE  (cached — only re-runs when dataset changes)
@@ -164,7 +318,10 @@ def load_ml_artefacts():
     from sklearn.neighbors import NearestNeighbors
     import shap
 
-    df = pd.read_csv("data/heart_cleveland.csv")
+    hc_path = _find_data_path("heart_cleveland.csv")
+    if hc_path is None:
+        hc_path = "data/heart_cleveland.csv"
+    df = pd.read_csv(hc_path)
     df["thal"] = df["thal"].replace({6:1,3:2,7:3})
     df["ca"]   = df["ca"].clip(0,3)
 
@@ -402,7 +559,7 @@ All hospital and doctor information is referenced from ABDM's Health Facility Re
             icu_pct = float(icu_row["occupancy_pct"].values[0]) if len(icu_row) else 0
             icu_avail = int(icu_row["beds_available"].values[0]) if len(icu_row) else 0
             bc,bi = bed_color_class(icu_pct)
-            with st.expander(f"{bi} **{h.get('hospital_name', h.get('name','Hospital'))}** · {h['city']} · {h['type']} — ICU {icu_pct:.0f}% full"):
+            with st.expander(f"{bi} **{h['name']}** · {h['city']} · {h['type']} — ICU {icu_pct:.0f}% full"):
                 hc1,hc2,hc3,hc4 = st.columns(4)
                 hc1.metric("Total Beds", f"{h['beds_total']:,}")
                 hc2.metric("ICU Available", f"{icu_avail}", delta=f"{icu_pct:.0f}% full")
@@ -529,10 +686,7 @@ National Medical Commission (NMC) registry IDs.
     perf["recovery_rate"] = (perf["recovered"]/perf["cases_handled"]*100).round(1)
     perf["complexity_score"] = perf["avg_severity"].round(2)
     perf = perf.merge(doc_df,on="doctor_id",how="left")
-    hosp_cols = [c for c in ["hospital_id","hospital_name","name","city","type","pmjay_empanelled"] if c in hosp_df.columns]
-    perf = perf.merge(hosp_df[hosp_cols],on="hospital_id",how="left")
-    if "name" in perf.columns and "hospital_name" not in perf.columns:
-        perf = perf.rename(columns={"name":"hospital_name"})
+    perf = perf.merge(hosp_df[["hospital_id","name","city","type","pmjay_empanelled"]],on="hospital_id",how="left")
     perf = perf.sort_values("recovery_rate",ascending=False).reset_index(drop=True)
     perf["rank"] = range(1,len(perf)+1)
 
@@ -857,4 +1011,3 @@ Per **WHO Guidance on Ethics and Governance of AI for Health (2021)** and
 10. Breiman L. Random Forests. *Machine Learning.* 2001;45(1):5–32
 11. Lundberg SM, Lee SI. A unified approach to interpreting model predictions. *NeurIPS.* 2017
     """)
-
