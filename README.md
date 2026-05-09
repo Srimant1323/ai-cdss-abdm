@@ -1,4 +1,6 @@
 © 2026 Srimant Bhardwaj. All rights reserved.
+Developed by Srimant Bhardwaj with AI-assisted code generation (Claude, Anthropic).
+Concept, design, vision, problem identification, and deployment by the author.
 # 🏥 AI-Assisted Healthcare Intelligence Platform
 ### Aligned with Ayushman Bharat Digital Mission (ABDM) · MoHFW, Government of India
 
