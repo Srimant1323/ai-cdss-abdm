@@ -1,4 +1,4 @@
-© 2025 Srimant Bhardwaj. All rights reserved.
+© 2026 Srimant Bhardwaj. All rights reserved.
 # 🏥 AI-Assisted Healthcare Intelligence Platform
 ### Aligned with Ayushman Bharat Digital Mission (ABDM) · MoHFW, Government of India
 
