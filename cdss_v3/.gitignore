@@ -15,3 +15,5 @@ models/*.pkl
 data/audit_log.json
 data/heart_cleveland_backup.csv
 .ipynb_checkpoints/
+fix*.py
+patch*.py
