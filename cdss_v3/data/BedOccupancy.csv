@@ -1,0 +1,25 @@
+hospital_id,hospital_name,city,ward_type,beds_total,beds_occupied,beds_available,occupancy_pct,last_updated
+H001,AIIMS Delhi,Delhi,ICU,120,51,69,42.5,2026-05-09T17:13:18.210907
+H001,AIIMS Delhi,Delhi,Emergency,80,53,27,66.2,2026-05-09T17:13:18.210187
+H001,AIIMS Delhi,Delhi,General,1756,1015,741,57.8,2026-05-09T17:11:48.093222
+H002,Safdarjung Hospital,Delhi,ICU,80,45,35,56.2,2026-05-09T17:11:18.038680
+H002,Safdarjung Hospital,Delhi,Emergency,60,8,52,13.3,2026-05-09T17:09:17.864534
+H002,Safdarjung Hospital,Delhi,General,1391,816,575,58.7,2026-05-09T17:13:18.210689
+H003,Apollo Hospital Delhi,Delhi,ICU,100,56,44,56.0,2026-05-09T17:13:18.212099
+H003,Apollo Hospital Delhi,Delhi,Emergency,50,14,36,28.0,2026-05-09T17:13:18.211876
+H003,Apollo Hospital Delhi,Delhi,General,550,301,249,54.7,2026-05-09T17:12:48.164562
+H004,Fortis Memorial Gurugram,Gurugram,ICU,45,20,25,44.4,2026-05-09T17:07:47.766772
+H004,Fortis Memorial Gurugram,Gurugram,Emergency,30,16,14,53.3,2026-05-09T17:11:18.040400
+H004,Fortis Memorial Gurugram,Gurugram,General,187,98,89,52.4,2026-05-09T17:13:18.211457
+H005,Medanta The Medicity,Gurugram,ICU,200,132,68,66.0,2026-05-09T17:12:18.133428
+H005,Medanta The Medicity,Gurugram,Emergency,100,64,36,64.0,2026-05-09T17:13:18.211672
+H005,Medanta The Medicity,Gurugram,General,1300,743,557,57.2,2026-05-09T17:13:18.212300
+H006,Max Super Speciality Saket,Delhi,ICU,75,38,37,50.7,2026-05-09T17:11:48.094450
+H006,Max Super Speciality Saket,Delhi,Emergency,40,23,17,57.5,2026-05-09T17:12:48.164874
+H006,Max Super Speciality Saket,Delhi,General,385,199,186,51.7,2026-05-09T17:10:47.980385
+H007,RML Hospital New Delhi,Delhi,ICU,60,44,16,73.3,2026-05-09T17:13:18.211184
+H007,RML Hospital New Delhi,Delhi,Emergency,70,35,35,50.0,2026-05-09T17:12:18.133741
+H007,RML Hospital New Delhi,Delhi,General,1360,756,604,55.6,2026-05-09T17:13:18.210458
+H008,City Care Hospital Noida,Noida,ICU,20,15,5,75.0,2026-05-09T17:12:18.133528
+H008,City Care Hospital Noida,Noida,Emergency,15,5,10,33.3,2026-05-09T17:12:48.165095
+H008,City Care Hospital Noida,Noida,General,115,47,68,40.9,2026-05-09T17:12:48.164811
