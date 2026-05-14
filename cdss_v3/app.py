@@ -478,24 +478,45 @@ Patient identifiers are structured as <strong>ABHA numbers</strong>.
 # ─────────────────────────────────────────────────────────────────────────────
 # NAVIGATION
 # ─────────────────────────────────────────────────────────────────────────────
-tabs = st.tabs([
-    "🏠 Patient Navigator",
-    "🛏️ Live Bed Tracker",
-    "👨‍⚕️ Doctor Finder",
-    "🔮 AI Risk Assessment",
-    "📊 Population Analytics",
-    "📈 Model Evaluation",
-    "📋 Methodology & Policy",
-])
-t_nav,t_bed,t_doc,t_ai,t_pop,t_eval,t_meth = tabs
+# Language toggle
+lang = st.sidebar.radio("🌐 Language / भाषा", ["English", "हिंदी"], horizontal=True)
+T = {
+    "English": {
+        "nav":   "🏠 Patient Navigator",
+        "bed":   "🛏️ Live Bed Tracker",
+        "doc":   "👨‍⚕️ Doctor Finder",
+        "blood": "🩸 Blood Bank Finder",
+        "ai":    "🔮 AI Risk Assessment",
+        "pop":   "📊 Population Analytics",
+        "eval":  "📈 Model Evaluation",
+        "meth":  "📋 Methodology & Policy",
+    },
+    "हिंदी": {
+        "nav":   "🏠 रोगी नेविगेटर",
+        "bed":   "🛏️ बेड ट्रैकर",
+        "doc":   "👨‍⚕️ डॉक्टर खोजें",
+        "blood": "🩸 रक्त बैंक खोजें",
+        "ai":    "🔮 AI जोखिम मूल्यांकन",
+        "pop":   "📊 जनसंख्या विश्लेषण",
+        "eval":  "📈 मॉडल मूल्यांकन",
+        "meth":  "📋 कार्यप्रणाली",
+    }
+}[lang]
+
+tabs = st.tabs([T["nav"],T["bed"],T["doc"],T["blood"],T["ai"],T["pop"],T["eval"],T["meth"]])
+t_nav,t_bed,t_doc,t_blood,t_ai,t_pop,t_eval,t_meth = tabs
 
 # ══════════════════════════════════════════════════════════════════════════════
 # TAB 1 — PATIENT NAVIGATOR  (citizen-facing)
 # ══════════════════════════════════════════════════════════════════════════════
 with t_nav:
     st.subheader("🏠 Patient Navigator")
-    st.markdown("""
-<div class="note">
+    if lang == "हिंदी":
+        st.markdown("""<div class="note">🔵 यह नेविगेटर मरीजों और उनके परिजनों को सही अस्पताल और डॉक्टर खोजने में मदद करता है —
+        बीमारी, शहर और बेड उपलब्धता के आधार पर। सभी जानकारी ABDM के HFR और HPR रजिस्ट्री से ली गई है।</div>""",
+        unsafe_allow_html=True)
+    else:
+        st.markdown("""<div class="note">
 This navigator helps patients and their attendees find the right hospital and doctor based on their condition, location, and real-time bed availability. 
 All hospital and doctor information is referenced from ABDM's Health Facility Registry (HFR) and Healthcare Professional Registry (HPR).
 </div>""", unsafe_allow_html=True)
@@ -904,6 +925,145 @@ Categorical features use OneHotEncoder (not LabelEncoder) — avoiding false ord
     fig_fi.update_layout(yaxis=dict(autorange="reversed"),showlegend=False,coloraxis_showscale=False)
     st.plotly_chart(fig_fi,use_container_width=True)
 
+
+# ══════════════════════════════════════════════════════════════════════════════
+# TAB — BLOOD BANK FINDER
+# ══════════════════════════════════════════════════════════════════════════════
+with t_blood:
+    if lang == "हिंदी":
+        st.subheader("🩸 रक्त बैंक खोजें")
+        st.markdown("""<div class="note">🔵 रक्त बैंक की जानकारी eRaktKosh (NACO, MoHFW) पर आधारित है।
+        वर्तमान में यह डेटा प्रदर्शन के लिए है। वास्तविक उपलब्धता के लिए eRaktKosh.nic.in देखें।</div>""",
+        unsafe_allow_html=True)
+    else:
+        st.subheader("🩸 Blood Bank Finder")
+        st.markdown("""<div class="note">🔵 Blood bank data is referenced from <strong>eRaktKosh (NACO, MoHFW)</strong> —
+        India's national blood bank portal. Current availability is simulated for demonstration.
+        For real-time data visit <a href="https://eraktKosh.nic.in" target="_blank">eRaktKosh.nic.in</a> ·
+        Emergency: <strong>104</strong> (Health Helpline)</div>""", unsafe_allow_html=True)
+
+    # Blood bank data
+    blood_banks = pd.DataFrame({
+        "bank_id":      ["BB001","BB002","BB003","BB004","BB005","BB006","BB007","BB008","BB009","BB010"],
+        "name":         ["AIIMS Blood Bank","Safdarjung Blood Bank","Apollo Blood Centre",
+                         "Medanta Blood Bank","RML Blood Bank","Fortis Blood Bank",
+                         "Red Cross Blood Bank Delhi","Max Blood Bank",
+                         "GTB Hospital Blood Bank","Sir Ganga Ram Blood Bank"],
+        "hospital":     ["AIIMS Delhi","Safdarjung Hospital","Apollo Hospital Delhi",
+                         "Medanta The Medicity","RML Hospital","Fortis Memorial Gurugram",
+                         "Red Cross Society","Max Super Speciality","GTB Hospital","Sir Ganga Ram Hospital"],
+        "city":         ["Delhi","Delhi","Delhi","Gurugram","Delhi","Gurugram","Delhi","Delhi","Delhi","Delhi"],
+        "contact":      ["011-26588700","011-26165060","011-71791091","0124-4141415",
+                         "011-23365526","0124-4921022","011-23711551","011-26515051",
+                         "011-22586262","011-25750000"],
+        "naco_id":      ["NACO-DL-BB-001","NACO-DL-BB-002","NACO-DL-BB-003","NACO-HR-BB-001",
+                         "NACO-DL-BB-004","NACO-HR-BB-002","NACO-DL-BB-005","NACO-DL-BB-006",
+                         "NACO-DL-BB-007","NACO-DL-BB-008"],
+        "type":         ["Government","Government","Private","Private","Government",
+                         "Private","NGO","Private","Government","Private"],
+        "24x7":         [True,True,True,True,False,True,False,True,True,True],
+        "apheresis":    [True,False,True,True,False,True,False,True,False,True],
+    })
+
+    # Generate synthetic blood availability
+    np.random.seed(int(datetime.now().timestamp()) % 500)
+    blood_types = ["A+","A-","B+","B-","AB+","AB-","O+","O-"]
+    for bt in blood_types:
+        blood_banks[bt] = np.random.randint(0, 25, len(blood_banks))
+
+    # Filters
+    bc1,bc2,bc3 = st.columns(3)
+    with bc1:
+        sel_blood_type = st.selectbox(
+            "रक्त समूह / Blood Type" if lang=="हिंदी" else "Blood Type Required",
+            ["Any"] + blood_types
+        )
+    with bc2:
+        sel_blood_city = st.selectbox(
+            "शहर / City" if lang=="हिंदी" else "City",
+            ["Any"] + sorted(blood_banks["city"].unique())
+        )
+    with bc3:
+        only_available = st.checkbox(
+            "केवल उपलब्ध / Only Available" if lang=="हिंदी" else "Show only banks with stock > 0",
+            value=True
+        )
+
+    # Filter
+    bb_fil = blood_banks.copy()
+    if sel_blood_city != "Any":
+        bb_fil = bb_fil[bb_fil["city"] == sel_blood_city]
+    if sel_blood_type != "Any" and only_available:
+        bb_fil = bb_fil[bb_fil[sel_blood_type] > 0]
+
+    # System KPIs
+    bk1,bk2,bk3,bk4 = st.columns(4)
+    bk1.metric("Blood Banks" if lang=="English" else "रक्त बैंक", len(bb_fil))
+    if sel_blood_type != "Any":
+        total_units = int(bb_fil[sel_blood_type].sum())
+        bk2.metric(f"{sel_blood_type} Units Available" if lang=="English" else f"{sel_blood_type} यूनिट उपलब्ध", total_units)
+    else:
+        bk2.metric("Cities Covered" if lang=="English" else "शहर", bb_fil["city"].nunique())
+    bk3.metric("24×7 Available" if lang=="English" else "24×7 उपलब्ध", int(bb_fil["24x7"].sum()))
+    bk4.metric("Emergency" if lang=="English" else "आपातकालीन", "104")
+
+    st.markdown("---")
+
+    # Blood bank cards
+    for _, bb in bb_fil.iterrows():
+        avail_label = ""
+        if sel_blood_type != "Any":
+            units = int(bb[sel_blood_type])
+            if units == 0:
+                avail_label = "❌ Not Available"
+            elif units < 5:
+                avail_label = f"🟡 Low Stock ({units} units)"
+            else:
+                avail_label = f"🟢 Available ({units} units)"
+
+        with st.expander(f"🏥 **{bb['name']}** · {bb['city']} · {bb['type']} {avail_label}"):
+            col_bb1, col_bb2, col_bb3, col_bb4 = st.columns(4)
+            col_bb1.metric("24×7", "✅ Yes" if bb["24x7"] else "❌ No")
+            col_bb2.metric("Apheresis", "✅ Yes" if bb["apheresis"] else "❌ No")
+            col_bb3.metric("Contact", bb["contact"])
+            col_bb4.metric("NACO ID", bb["naco_id"])
+
+            # Blood availability grid
+            st.markdown("**Blood availability (units):**" if lang=="English" else "**रक्त उपलब्धता (यूनिट):**")
+            cols_bt = st.columns(8)
+            for i, bt in enumerate(blood_types):
+                units = int(bb[bt])
+                color = "🟢" if units >= 5 else ("🟡" if units > 0 else "🔴")
+                cols_bt[i].metric(bt, f"{color} {units}")
+
+            st.caption(
+                f"Hospital: {bb['hospital']} | "
+                f"For real availability call: {bb['contact']} | "
+                f"National Blood Helpline: 104 | "
+                f"eRaktKosh: eraktKosh.nic.in"
+            )
+
+    # Blood type availability chart
+    if sel_blood_type == "Any" and len(bb_fil) > 0:
+        st.subheader("Blood type availability across all banks" if lang=="English" else "सभी बैंकों में रक्त उपलब्धता")
+        bt_totals = {bt: int(bb_fil[bt].sum()) for bt in blood_types}
+        bt_df = pd.DataFrame({"Blood Type": list(bt_totals.keys()), "Units": list(bt_totals.values())})
+        fig_bt = px.bar(bt_df, x="Blood Type", y="Units",
+                        color="Units", color_continuous_scale="RdYlGn",
+                        template="plotly_white",
+                        text="Units")
+        fig_bt.update_traces(textposition="outside")
+        fig_bt.update_layout(showlegend=False, coloraxis_showscale=False)
+        st.plotly_chart(fig_bt, use_container_width=True)
+
+    st.markdown("""
+<div class="disc">
+⚠️ Blood availability data is synthetically generated for demonstration only.
+For real emergency blood requirements: Call <strong>104</strong> (National Health Helpline) or visit
+<strong>eRaktKosh.nic.in</strong> — India's national blood bank management portal under NACO, MoHFW.
+In production, this module would connect directly to eRaktKosh APIs for live inventory data.
+</div>""", unsafe_allow_html=True)
+
 # ══════════════════════════════════════════════════════════════════════════════
 # TAB 7 — METHODOLOGY & POLICY
 # ══════════════════════════════════════════════════════════════════════════════
@@ -1013,20 +1173,4 @@ Per **WHO Guidance on Ethics and Governance of AI for Health (2021)** and
 9. Sharma RS et al. The ABDM: Making of India's Digital Health Story. *CSI Trans ICT.* 2023
 10. Breiman L. Random Forests. *Machine Learning.* 2001;45(1):5–32
 11. Lundberg SM, Lee SI. A unified approach to interpreting model predictions. *NeurIPS.* 2017
-    """)
-    
-    st.markdown("""
----
-## Developer
-
-| | |
-|---|---|
-| **Developed by** | Srimant Bhardwaj |
-| **Institution** | Delhi Technological University |
-| **Year** | 2026 |
-| **Contact** | bhardwajsrimant7@gmail.com |
-| **GitHub** | https://github.com/Srimant1323 |
-| **Copyright** | © 2026 Srimant Bhardwaj. All rights reserved. |
-
-*This project is an original research prototype. Concept, design, vision, and deployment by the author. Code developed with AI-assisted tools (Claude, Anthropic). Unauthorised reproduction or commercial use without attribution is not permitted.*
     """)
